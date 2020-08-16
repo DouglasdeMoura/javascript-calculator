@@ -1,7 +1,7 @@
 # JavaScript Calculator
 
 A simple JavaScript calculator built with HTML, CSS and vanilla JavaScript.
-Check the calculator working on the browser.
+[Check the calculator working on the browser](https://douglasdemoura.github.io/javascript-calculator/).
 
 ## Author
 
