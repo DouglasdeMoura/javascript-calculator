@@ -84,7 +84,6 @@ class Calculator {
       }
 
       if (typeof keys[event.key] !== 'undefined') {
-        
         this.handleClick(keys[event.key]);
       }
     });
@@ -203,8 +202,8 @@ class Calculator {
       }
     });
 
-    stack.forEach(() => {
-      queue.push(stack.shift());
+    stack.forEach((stackItem) => {
+      queue.push(stackItem);
     });
 
     return queue;
