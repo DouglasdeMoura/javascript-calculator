@@ -141,6 +141,7 @@ class Calculator {
         queue.push(token);
       } else if (
         typeof stack[0] === 'object'
+        && typeof operator === 'object'
         && (
           stack[0].precedence > operator.precedence
           || (
@@ -152,7 +153,6 @@ class Calculator {
         queue.push(stack[0]);
         stack.shift();
         stack.unshift(operator);
-        
       } else if (token === '(') {
         stack.unshift(token);
       } else if (token === ')') {
@@ -196,6 +196,10 @@ class Calculator {
 
     const result = stack.pop();
 
+    if (!isFinite(result)) {
+      throw new Error;
+    }
+
     return result;
 
   }
@@ -208,7 +212,8 @@ class Calculator {
         .replace(/-/gi, ' - ')
         .replace(/\+/gi, ' + ')
         .replace(/\(/gi, ' ( ')
-        .replace(/\)/gi, ' ) ');
+        .replace(/\)/gi, ' ) ')
+        .trim();
 
       return this.solveExpression(preparedExpression);
     } catch (error) {
