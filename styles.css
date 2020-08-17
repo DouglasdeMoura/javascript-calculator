@@ -157,3 +157,9 @@ footer {
 .buttons-area button:nth-last-child(2):active {
   opacity: 0.5;
 }
+
+@media (max-height: 560px) {
+  footer {
+    display: none;
+  }
+}
