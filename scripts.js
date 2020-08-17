@@ -11,6 +11,8 @@ class Calculator {
     this.result = '';
 
     this.error = '';
+
+    this.lastOperator = '';
   }
 
   createButton(value) {
@@ -223,6 +225,27 @@ class Calculator {
       if (isFinite(input)) {
         calculatorInput.textContent = '';
       }
+    }
+
+    if (
+      !isFinite(this.lastOperator)
+      && input !== 'C'
+      && input !== '⌫'
+      && input !== '='
+      && input !== '('
+      && input !== ')'
+      && !isFinite(input) 
+      && 
+        (
+          this.lastOperator === '÷' 
+          || (this.lastOperator === '×')
+          || (this.lastOperator === '-')
+          || (this.lastOperator === '+')
+        )
+    ) {
+      input = '';
+    } else {
+      this.lastOperator = input;
     }
 
     switch (input) {
