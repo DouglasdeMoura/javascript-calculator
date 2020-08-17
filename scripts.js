@@ -2,10 +2,10 @@ class Calculator {
   constructor() {
     this.buttons = [
       '(', ')', '⌫', 'C',
-       7,   8,   9,  '÷',
-       4,   5,   6,  '×',
-       1,   2,   3,  '-',
-       0,  '.', '=', '+'
+      7, 8, 9, '÷',
+      4, 5, 6, '×',
+      1, 2, 3, '-',
+      0, '.', '=', '+'
     ];
 
     this.result = '';
@@ -85,10 +85,126 @@ class Calculator {
     operandContainer.textContent = '';
   }
 
+  infixExpressionToPostfixExpression(expression) {
+    const tokens = expression.split(' ').filter( token => {
+      return token !== '';
+    });
+
+    const queue = [];
+    const stack = [];
+
+    const operators = {
+      "/": {
+        symbol: '/',
+        precedence: 3,
+        associativity: 'left',
+        eval: (a, b) => {
+          return a / b;
+        }
+      },
+      "*": {
+        symbol: '*',
+        precedence: 3,
+        associativity: 'left',
+        eval: (a, b) => {
+          return a * b;
+        }
+      },
+      "+": {
+        symbol: '+',
+        precedence: 2,
+        associativity: 'left',
+        eval: (a, b) => {
+          return a + b;
+        }
+      },
+      "-": {
+        symbol: '-',
+        precedence: 2,
+        associativity: 'left',
+        eval: (a, b) => {
+          return a - b;
+        }
+      }
+    }
+
+    tokens.forEach((token) => {
+      const firstOperatorOnTheStack = (typeof stack[0] !== 'undefined' ? '' : stack[0]);
+      const operator = operators[token];
+
+      if (isFinite(token)) {
+        queue.push(token);
+      } else if (
+        typeof firstOperatorOnTheStack === 'object'
+        && (
+          firstOperatorOnTheStack.precedence > operator.precedence
+          || (
+            firstOperatorOnTheStack.precedence === operator.precedence
+            && operator.associativity === 'left'
+          )
+        )
+      ) {
+        queue.push(firstOperatorOnTheStack);
+        queue.push(token);
+        stack.shift();
+      } else if (token === '(') {
+        stack.push(token);
+      } else if (token === ')') {
+        const rightParenthesisIndex = stack.indexOf('(');
+
+        for (let i = 0; i < rightParenthesisIndex; i++) {
+          queue.push(stack.shift());          
+        }
+
+        stack.shift();
+      } else {
+        if ( typeof operators[token] === 'object' ) {
+          stack.unshift(operators[token]);
+        } else {
+          stack.unshift(token);
+        }
+      }
+    });
+
+    stack.forEach((operator) => {
+      queue.push(stack.shift());
+    });
+
+    return queue;
+  }
+
+  solveExpression(expression) {
+    const postfixExpression = this.infixExpressionToPostfixExpression(expression);
+    const stack =  [];
+
+    postfixExpression.map((element) => {
+      if (isFinite(element)) {
+        stack.unshift(Number(element));
+      } else {
+        const b = stack.shift();
+        const a = stack.shift();
+
+        stack.unshift(element.eval(a, b));
+      }
+    });
+
+    const result = stack.pop();
+
+    return result;
+
+  }
+
   evaluate(input) {
     try {
       this.displayOperand(input);
-      return eval(input.replace(/÷/gi, '/').replace(/×/gi, '*'));
+      const preparedExpression = input.replace(/÷/gi, ' / ')
+        .replace(/×/gi, ' * ')
+        .replace(/-/gi, ' - ')
+        .replace(/\+/gi, ' + ')
+        .replace(/\(/gi, ' ( ')
+        .replace(/\)/gi, ' ) ');
+
+      return this.solveExpression(preparedExpression);
     } catch (error) {
       this.result = '';
       this.displayError('Check your expression <br>and try again.');
@@ -103,6 +219,10 @@ class Calculator {
 
     if (this.result !== '') {
       this.result = '';
+
+      if (isFinite(input)) {
+        calculatorInput.textContent = '';
+      }
     }
 
     switch (input) {
