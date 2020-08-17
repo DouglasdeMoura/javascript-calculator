@@ -87,14 +87,7 @@ class Calculator {
     operandContainer.textContent = '';
   }
 
-  infixExpressionToPostfixExpression(expression) {
-    const tokens = expression.split(' ').filter( token => {
-      return token !== '';
-    });
-
-    const queue = [];
-    const stack = [];
-
+  getOperator(operator) {
     const operators = {
       "/": {
         symbol: '/',
@@ -130,27 +123,38 @@ class Calculator {
       }
     }
 
+    return operators[operator];
+  }
+
+  infixExpressionToPostfixExpression(expression) {
+    const tokens = expression.split(' ').filter( token => {
+      return token !== '';
+    });
+
+    const queue = [];
+    const stack = [];
+
     tokens.forEach((token) => {
-      const firstOperatorOnTheStack = (typeof stack[0] !== 'undefined' ? '' : stack[0]);
-      const operator = operators[token];
+      const operator = this.getOperator(token);
 
       if (isFinite(token)) {
         queue.push(token);
       } else if (
-        typeof firstOperatorOnTheStack === 'object'
+        typeof stack[0] === 'object'
         && (
-          firstOperatorOnTheStack.precedence > operator.precedence
+          stack[0].precedence > operator.precedence
           || (
-            firstOperatorOnTheStack.precedence === operator.precedence
+            stack[0].precedence === operator.precedence
             && operator.associativity === 'left'
           )
         )
       ) {
-        queue.push(firstOperatorOnTheStack);
-        queue.push(token);
+        queue.push(stack[0]);
         stack.shift();
+        stack.unshift(operator);
+        
       } else if (token === '(') {
-        stack.push(token);
+        stack.unshift(token);
       } else if (token === ')') {
         const rightParenthesisIndex = stack.indexOf('(');
 
@@ -160,15 +164,15 @@ class Calculator {
 
         stack.shift();
       } else {
-        if ( typeof operators[token] === 'object' ) {
-          stack.unshift(operators[token]);
+        if (typeof operator === 'object') {
+          stack.unshift(operator);
         } else {
           stack.unshift(token);
         }
       }
     });
 
-    stack.forEach((operator) => {
+    stack.forEach(() => {
       queue.push(stack.shift());
     });
 
