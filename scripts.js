@@ -230,7 +230,12 @@ class Calculator {
       throw new Error;
     }
 
-    return result;
+    if (Number.isInteger(result)) {
+      console.log(result);
+      return result;
+    } else {
+      return result.toFixed(3);
+    }
 
   }
 
