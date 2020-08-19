@@ -246,6 +246,8 @@ class Calculator {
     if (operands !== (operators + 1)) {
       return false;
     }
+
+    return true;
   }
 
   evaluate(postfixExpression) {
