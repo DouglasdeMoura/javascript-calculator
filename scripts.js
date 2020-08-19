@@ -173,41 +173,42 @@ class Calculator {
     const stack = [];
     const queue = [];
 
-    tokenizedExpression.forEach(token => {
-      function operatorOnTopOfTheStack(stack) {
-        if (typeof stack[0] !== 'undefined' && typeof stack[0].precedence !== 'undefined') {
-          return stack[0];
-        }
-  
-        return false;
+    const localOperators = {
+      ...this.operators,
+      '(': {
+        symbol: '(',
+        precedence: 0
       }
+    }
 
+    tokenizedExpression.forEach(token => {
       if (this.isNumeric(token)) {
         queue.push(token);
-      } else if (this.isValidOperator(token)) {
-        let theOperatorOnTopOfTheStack = operatorOnTopOfTheStack(stack);
-
-        while (
-          theOperatorOnTopOfTheStack
-          && (
-            (
-              theOperatorOnTopOfTheStack.precedence === token.precedence
-              && token.associativity === 'left'
-            )
-            || theOperatorOnTopOfTheStack.precedence >= token.precedence
-          )
+      } else if (typeof localOperators[token] !== 'undefined') {
+        if (stack.length === 0) {
+          stack.unshift(localOperators[token]);
+        } else if (localOperators[token].precedence === 0) {
+          stack.unshift(localOperators[token]);
+        } else if (stack[0].precedence < localOperators[token].precedence) {
+          stack.unshift(localOperators[token]);
+        } else if (stack[0].precedence > localOperators[token].precedence) {
+          queue.push(stack.shift());
+          stack.unshift(localOperators[token]);
+        } else if (
+          stack[0].precedence === localOperators[token].precedence
+          && localOperators[token].associativity === 'right'
         ) {
+          stack.unshift(localOperators[token]);
+        } else if (stack[0].precedence === localOperators[token].precedence) {
           queue.push(stack.shift());
-          theOperatorOnTopOfTheStack = operatorOnTopOfTheStack(stack);
+          stack.unshift(localOperators[token]);
         }
-
-        stack.unshift(this.operators[token]);
       } else if (token === '(') {
-        stack.push(token);
+        stack.unshift(token);
       } else if (token === ')') {
-        while(stack[0] !== '(') {
+        while(stack[0].symbol !== '(') {
           queue.push(stack.shift());
-
+  
           if (stack.length === 0) {
             throw new Error('The expression lacks an opening parenthesis.');
           }
@@ -225,29 +226,6 @@ class Calculator {
 
   isNumeric(token) {
     return !isNaN(parseFloat(token)) && isFinite(token);
-  }
-
-  isPostfixNotationValid(postfixExpression) {
-    let operands = 0;
-    let operators = 0;
-
-    if (!(this.isNumeric(postfixExpression[0]) && this.isNumeric(postfixExpression[1]) && !this.isNumeric(postfixExpression[postfixExpression.length - 1]))) {
-      return false;
-    }
-
-    postfixExpression.map((item) => {
-      if(this.isNumeric(item)) {
-        operands += 1;
-      } else {
-        operators += 1;
-      }
-    });
-
-    if (operands !== (operators + 1)) {
-      return false;
-    }
-
-    return true;
   }
 
   evaluate(postfixExpression) {
